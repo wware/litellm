@@ -1,4 +1,5 @@
 import os
+import json
 from litellm import completion
 from typing import Dict, Any, List, Callable
 from dotenv import load_dotenv
@@ -48,7 +49,7 @@ def execute_function_call(function_name: str, arguments: Dict[str, Any]) -> Any:
     except Exception as e:
         return f"Error executing {function_name}: {str(e)}"
 
-def chat_with_litellm_ln_provider():
+def main():
     """Chat using LiteLLM with the custom LN provider"""
     
     # Get model from environment
@@ -110,7 +111,7 @@ Otherwise, respond normally."""
                 print("🔧 Tool calls detected!")
                 
                 # Add assistant message to conversation
-                messages.append(assistant_message.dict())
+                messages.append(assistant_message.model_dump())
                 
                 # Process each tool call
                 for tool_call in assistant_message.tool_calls:
@@ -138,46 +139,5 @@ Otherwise, respond normally."""
             print(f"❌ Error details: {type(e).__name__}: {str(e)}")
             break
 
-# Alternative usage - auto-detect based on URL
-def chat_with_auto_detection():
-    """Example using URL-based auto-detection"""
-    
-    model_name = os.getenv("LLM_PROXY_MODEL", "")
-    base_url = os.getenv("LLM_PROXY_BASE", "")
-    tenant_key = os.getenv("LLM_PROXY_TENANT", "")
-    
-    # LiteLLM will auto-detect ln_proxy provider based on URL
-    response = completion(
-        model=model_name,  # No prefix needed with auto-detection
-        api_base=base_url,
-        api_key=tenant_key,
-        messages=[
-            {"role": "user", "content": "Hello!"}
-        ]
-    )
-    
-    return response
-
 if __name__ == "__main__":
-    print("This demonstrates how to use LiteLLM with the LN provider after integration")
-    print("The actual integration requires modifying LiteLLM's core files")
-    
-    # For testing the provider directly without LiteLLM integration:
-    print("\n🧪 Testing provider directly...")
-    from ln_proxy import LNProxyProvider
-    
-    provider = LNProxyProvider()
-    model_name = os.getenv("LLM_PROXY_MODEL", "")
-    
-    if model_name:
-        try:
-            response = provider.completion(
-                model=model_name,
-                messages=[{"role": "user", "content": "Hello!"}]
-            )
-            print(f"✅ Direct provider test successful!")
-            print(f"Response: {response.choices[0].message.content}")
-        except Exception as e:
-            print(f"❌ Direct provider test failed: {e}")
-    else:
-        print("❌ LLM_PROXY_MODEL not set - skipping test")
+    main()
