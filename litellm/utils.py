@@ -4975,6 +4975,39 @@ def get_model_info(model: str, custom_llm_provider: Optional[str] = None) -> Mod
             "supported_openai_params": ["temperature", "max_tokens", "top_p", "frequency_penalty", "presence_penalty"]
         }
     """
+    # Add LN Proxy provider handling at the top of the function
+    if custom_llm_provider == "ln_proxy" or model.startswith("ln_proxy/"):
+        # Clean model name if it has provider prefix
+        clean_model = model.replace("ln_proxy/", "") if model.startswith("ln_proxy/") else model
+
+        ln_proxy_model_costs = {
+            "anthropic-claude-3-7-sonnet-20250219_Daylight_3363_nonprod": {
+                "input_cost_per_token": 0.000003,
+                "output_cost_per_token": 0.000015,
+                "litellm_provider": "ln_proxy",
+                "mode": "chat",
+                "supports_function_calling": True,
+            },
+            # who the heck is Harvey?
+            "anthropic-claude-3-7-sonnet-20250219_Harvey_nonprod": {
+                "input_cost_per_token": 0.000003,
+                "output_cost_per_token": 0.000015,
+                "litellm_provider": "ln_proxy",
+                "mode": "chat",
+                "supports_function_calling": True,
+            },
+            # Add other LN models as needed
+        }
+
+        model_info = ln_proxy_model_costs.get(clean_model, {
+            "input_cost_per_token": 0.000003,  # Default pricing
+            "output_cost_per_token": 0.000015,
+            "litellm_provider": "ln_proxy",
+            "mode": "chat",
+            "supports_function_calling": True,
+        })
+        return ModelInfo(**model_info)
+
     supported_openai_params = litellm.get_supported_openai_params(
         model=model, custom_llm_provider=custom_llm_provider
     )

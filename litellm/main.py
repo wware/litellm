@@ -1367,7 +1367,25 @@ def completion(  # type: ignore # noqa: PLR0915
                 stream=stream,
             )
 
-        if custom_llm_provider == "azure":
+        if (
+            custom_llm_provider == "ln_proxy"
+            or model.startswith("ln_proxy/")
+            or (api_base and "ln.lexis.com" in api_base)  # Auto-detect LN URLs
+        ):
+            from litellm.llms.ln_proxy import completion as ln_proxy_completion
+
+            clean_model = model.replace("ln_proxy/", "") if model.startswith("ln_proxy/") else model
+
+            return ln_proxy_completion(
+                model=clean_model,
+                messages=messages,
+                api_base=api_base,
+                api_key=api_key,
+                custom_llm_provider="ln_proxy",
+                **kwargs
+            )
+
+        elif custom_llm_provider == "azure":
             # azure configs
             ## check dynamic params ##
             dynamic_params = False
