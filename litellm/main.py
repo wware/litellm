@@ -1367,14 +1367,19 @@ def completion(  # type: ignore # noqa: PLR0915
                 stream=stream,
             )
 
-        if (
-            custom_llm_provider == "ln_proxy"
-            or model.startswith("ln_proxy/")
-            or (api_base and "ln.lexis.com" in api_base)  # Auto-detect LN URLs
-        ):
+        if custom_llm_provider == "ln_proxy":
             from litellm.llms.ln_proxy import completion as ln_proxy_completion
 
             clean_model = model.replace("ln_proxy/", "") if model.startswith("ln_proxy/") else model
+
+            api_base_2 = kwargs.pop("api_base", "")
+            if api_base_2:
+                assert api_base == api_base_2, (api_base, api_base_2)
+            assert "model" not in kwargs, kwargs
+            assert "messages" not in kwargs, kwargs
+            assert "api_base" not in kwargs, kwargs
+            assert "api_key" not in kwargs, kwargs
+            assert "custom_llm_provider" not in kwargs, kwargs
 
             return ln_proxy_completion(
                 model=clean_model,

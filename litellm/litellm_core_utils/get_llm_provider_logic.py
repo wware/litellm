@@ -101,6 +101,14 @@ def get_llm_provider(  # noqa: PLR0915
 
     Return model, custom_llm_provider, dynamic_api_key, api_base
     """
+    if (
+        custom_llm_provider == "ln_proxy" 
+        or model.startswith("ln_proxy/")
+        or (api_base and ("ln.lexis.com" in api_base or "lexis.com" in api_base))
+    ):
+        model = model.replace("ln_proxy/", "") if model.startswith("ln_proxy/") else model
+        return model, "ln_proxy", api_key, api_base
+
     try:
         if litellm.LiteLLMProxyChatConfig._should_use_litellm_proxy_by_default(
             litellm_params=litellm_params
